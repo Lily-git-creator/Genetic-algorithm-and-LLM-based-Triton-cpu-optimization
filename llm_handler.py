@@ -4,7 +4,7 @@ import json
 import re
 
 # 配置
-API_KEY = os.getenv("LLM_API_KEY", "sk-81be26ac9f644f86ac1a069656baf5d1") # 替换你的Key
+API_KEY = os.getenv("LLM_API_KEY", "sk-") # 替换你的Key
 API_URL = "https://api.deepseek.com/chat/completions"
 MODEL_NAME = "deepseek-chat"
 
