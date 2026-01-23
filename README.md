@@ -11,17 +11,10 @@
 ```
 triton-operator-optimization/
 ├── README.md                  # 项目说明文档
-├── requirements.txt           # 依赖包清单
-├── main.py                    # 优化入口（支持算法选择、参数配置、执行优化）
-├── config/                    # 配置文件目录
-│   ├── evolution_config.py    # 进化算法参数配置（种群规模、迭代次数、概率等）
-│   ├── agent_config.py        # 多Agent参数配置（角色定义、提示词模板等）
-│   └── evaluator_config.py    # 评估器配置（延迟测试次数、硬件监控指标等）
 ├── evolution_algorithms/      # 进化算法核心模块（多种算法实现）
 │   ├── __init__.py
-│   ├── para_evoluter.py       # 爬山算法（ParaEvoluter）
-│   ├── genetic_algorithm.py   # 遗传算法（GA）
-│   └── differential_evolution.py  # 差分进化算法（DE）
+│   ├── evoluter.py       # 爬山算法（ParaEvoluter）遗传算法（GA）差分进化算法（DE）
+│   └── genetic_algorithm.py   # 遗传算法（GA）
 ├── multi_agent/               # 多Agent协作模块
 │   ├── __init__.py
 │   ├── role_agents.py         # 角色Agent定义（Tiling优化、Vector优化等）
