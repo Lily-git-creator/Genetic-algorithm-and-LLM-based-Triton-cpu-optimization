@@ -1,11 +1,17 @@
 # Genetic-algorithm-and-LLM-based-Triton-cpu-optimization
+**团队成员 (Contributors)：**
+杨玺禾、于宛扬 、郭芮含
 ## Background
 深度学习算子的性能表现已成为制约系统整体效率的核心瓶颈之一。Triton 作为高性能算子开发框架，为开发者提供了简洁的抽象接口，大幅降低了高性能算子的实现门槛，但在 CPU 后端的优化仍面临诸多挑战，亟需高效的自动优化方案。
 
 当前主流的优化思路中，仅依赖大语言模型（LLM）存在明显局限：尽管 LLM 具备强大的代码生成与优化能力，但优化过程效率低下、资源消耗过大，难以在庞大的算子优化搜索空间中快速定位最优解。而遗传算法等进化算法虽能引导搜索过程高效收敛，但缺乏语义理解能力，易产生语义错误。
 
-为解决上述问题，本项目融合进化算法的高效搜索能力与 LLM 的语义优化优势，同时引入多Agent协作机制，构建了一套 Triton 算子自动优化库。库中集成了多种进化算法与协作策略，实现了“搜索引导 + 语义优化 + 协作增强”的全流程自动优化，旨在为 CPU 后端的 Triton 算子提供高效、可靠的性能优化方案。
+为解决上述问题，本项目提出了一种结合 **大语言模型 (LLMs)** 强大的代码生成能力与 **进化算法 (Evolutionary Algorithms)** 全局搜索能力的自动化优化框架 。通过引入遗传算法 (GA)、差分进化 (DE) 以及多智能体 (Multi-Agent) 协作机制，本框架能够引导 LLM 在巨大的搜索空间中快速收敛到高性能的算子实现 。
 
+主要贡献：
+* 对比了爬山算法 (ParaEvoluter)、遗传算法 (GA) 和差分进化 (DE) 在算子优化中的表现 。
+* 设计了 **MACO (Multi-Agents Code Optimization)** 系统，利用角色扮演 (Role-Playing) 的 Agent 针对 Tiling、Vectorization 等特定方向进行优化 。
+* 实现了 Triton CPU 算子的自动化迭代与性能评估 。
 ## Overview
 ### 1. 整体架构
 ```
@@ -136,90 +142,52 @@ EVOLUTION_ALGOS = {
 - 稳定性：经过多次迭代后，延迟波动控制在合理范围（避免语义错误导致的性能退化）；
 - 泛化性：通过Meta-Agent反馈，适配不同算子（matmul/rmsnorm）和CPU型号。
 
-## 代码使用说明
-### 1. 环境准备
-1. 克隆项目到本地：
-   ```bash
-   git clone https://github.com/Lily-git-creator/Genetic-algorithm-and-LLM-based-Triton-cpu-optimization.git
-   cd Genetic-algorithm-and-LLM-based-Triton-cpu-optimization
-   ```
-2. 安装依赖包：
-   ```bash
-   pip install -r requirements.txt
-   ```
-   核心依赖：`triton`（算子运行）、`numpy`（数据处理）、`matplotlib`（可视化）、`perf`（硬件监控）、`requests`（LLM API调用）。
-3. 配置关键参数：
-   - 修改`config/evolution_config.py`选择优化算法（`algo_choice: "DE"/"GA"/"Para"`）及参数；
-   - 修改`config/agent_config.py`启用多Agent协作（`use_maco: True/False`）；
-   - 在`llm_handler/llm_client.py`配置LLM API密钥、模型地址；
+## 安装与使用 (Installation & Usage)
 
-### 2. 快速开始（以matmul算子优化为例）
-#### （1）运行示例代码
+### 环境要求
+* Python 3.8+
+* Triton (CPU backend support)
+* PyTorch
+* LLM API Key (推荐 Deepseek V3.2 或其他高性能代码模型) 
+
+### 1. 配置 API Key
+
+在 `evolution_algorithms/llm_handler.py` 或环境变量中配置你的 LLM API Key。
+
+### 2. 运行基准进化算法 (GA/DE/Para)
+
+使用 `evolution_algorithms` 目录下的脚本进行单算子优化：
+
 ```bash
-python examples/matmul_optimize.py
+# 运行主进化程序
+python evolution_algorithms/main.py --algo de --budget 50
+
+# 或使用提供的 Shell 脚本
+bash evolution_algorithms/run_benchmark.sh
+
 ```
-#### （2）自定义算子优化
-1. 在项目根目录创建自定义算子文件（如`my_operator.py`），确保算子接口符合Triton规范；
-2. 编写优化脚本：
-```python
-from main import TritonOptimizer
 
-# 初始化优化器（指定算法、是否启用多Agent）
-optimizer = TritonOptimizer(
-    algo_choice="DE",  # 选择差分进化算法（可选："DE"/"GA"/"Para"）
-    use_maco=True,     # 启用多Agent协作
-    baseline_code_path="my_operator.py",  # 基线算子代码路径
-    max_generations=10,  # 迭代次数
-    population_size=50   # 种群规模
-)
+### 3. 运行多智能体优化 (Multi-Agent)
 
-# 执行优化
-best_code, optimization_report = optimizer.run()
+启动 MACO 系统进行更精细的协作优化：
 
-# 保存最优代码和报告
-optimizer.save_result(best_code, optimization_report, save_path="results/")
-```
-3. 运行脚本：
 ```bash
-python my_optimize_script.py
+cd multi_agent
+python evolution_main.py
+
 ```
 
-### 3. 结果查看
-- 最优代码：保存于`results/best_operator.py`；
-- 优化报告：`results/optimization_report.json`（含每代最优延迟、总耗时、加速比）；
-- 可视化图表：`results/`目录下生成延迟-迭代次数、总耗时-延迟对比图；
-- 日志文件：`logs/optimization.log`记录优化过程、参数、异常信息。
+### 4. 结果可视化
 
-### 4. 单元测试运行
+运行可视化脚本生成收敛曲线和进化路径图 ：
+
 ```bash
-# 测试所有进化算法
-python -m pytest tests/test_evolution_algos.py -v
+python multi_agent/visualizer.py
 
-# 测试多Agent协作功能
-python -m pytest tests/test_multi_agent.py -v
 ```
 
-## 总结与展望
-### 1. 项目总结
-本项目构建了一个集成多种进化算法与多Agent协作的Triton算子自动优化库，核心优势如下：
-- 算法丰富：提供爬山算法、遗传算法、差分进化算法，支持不同场景选择（DE最优综合效率）；
-- 协作增强：多Agent角色分工+Meta-Agent动态反馈，解决LLM盲目优化、泛化性差问题；
-- 高效可靠：异构异步流水线、多分支并行搜索提升优化效率，严格的有效性校验确保代码可用；
-- 易用性强：模块化设计，支持自定义算子、参数配置，输出可视化报告和最优代码。
-
-### 2. 未来展望
-1. 算法改进：融合多种进化算法的优势，设计混合优化策略，进一步提升收敛速度和稳定性；
-2. Agent系统升级：扩展Agent角色（如硬件适配专家、性能调试专家），增强协作智能；
-3. 动态优化增强：Meta-Agent支持任务相关的针对性优化，适配更复杂的算子（如Transformer层算子）；
-4. 性能瓶颈突破：优化LLM推理效率（如模型量化、本地部署），进一步降低优化耗时；
-5. 功能扩展：支持GPU后端Triton算子优化，适配更多硬件平台。
-
-## 常见问题
-1. **如何切换不同的进化算法？**  
-   修改`config/evolution_config.py`中的`algo_choice`字段，可选值为`"para_evoluter"`、`"genetic_algorithm"`、`"differential_evolution"`，同时可调整对应算法的专属参数。
-2. **多Agent协作如何添加新的优化角色？**  
-   在`multi_agent/role_agents.py`中定义新角色类，在`llm_handler/prompt_templates.py`添加对应角色的提示词模板，修改`agent_config.py`启用新角色。
-3. **基线代码延迟波动过大怎么办？**  
-   调整`config/evaluator_config.py`中的`test_times`（增加测试次数），启用`outlier_remove`（剔除异常值），或参考`evaluator/latency_evaluator.py`的逻辑优化延迟计算方式。
-4. **LLM调用耗时过长如何优化？**  
-   启用`utils/pipeline.py`的异构异步流水线，在`llm_handler/llm_client.py`中配置多API并发，或使用本地部署的轻量级LLM替代API调用。
+## 🔮 总结与展望 (Future Work)
+目前项目已验证了 LLM + 进化算法在算子优化上的可行性。未来的改进方向包括：
+1. **异构异步流水线**：将 API 推理（IO密集）与代码评估（计算密集）解耦，掩盖推理延迟 。
+2. **Meta-Agent 动态反馈**：引入底层硬件监控（如 Linux Perf, FlameGraph），让 Agent 根据 Cache Miss 等真实指标调整优化策略，而非盲目尝试 。
+3. **多分支并行搜索**：利用多 Key 轮询和种群分片加速搜索过程 。
