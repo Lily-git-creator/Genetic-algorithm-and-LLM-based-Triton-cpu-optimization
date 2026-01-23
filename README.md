@@ -33,12 +33,7 @@ Genetic-algorithm-and-LLM-based-Triton-cpu-optimization
 │   ├── baseline.py
 │   ├── seed_0_M128_N16_K32.py
 │   ├── seed_1_M64_N64_K64.py
-│   ├── seed_2_M16_N32_K32.py
-│   ├── seed_3_M16_N16_K32.py
-│   ├── seed_4_M128_N128_K64.py
-│   ├── seed_5_M64_N32_K16.py
-│   ├── seed_6_M16_N64_K64.py
-│   └── seed_7_M64_N128_K16.py
+│   └── ···
 ├── multi_agent
 │   ├── evaluator.py
 │   ├── evolution_main_k.py
