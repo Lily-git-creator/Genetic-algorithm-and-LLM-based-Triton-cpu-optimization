@@ -1,0 +1,41 @@
+{
+    "mode": "de",
+    "baseline_latency": 0.00411036005243659,
+    "generations": [
+        {
+            "generation": 1,
+            "best_latency": 0.0025379100115969777,
+            "gen_duration": 107.07484579086304,
+            "total_elapsed": 107.07485222816467,
+            "speedup": 0.6195846321005487
+        },
+        {
+            "generation": 2,
+            "best_latency": 0.0025379100115969777,
+            "gen_duration": 343.0533254146576,
+            "total_elapsed": 450.1284737586975,
+            "speedup": 0.6195846321005487
+        },
+        {
+            "generation": 3,
+            "best_latency": 0.0023667000932618976,
+            "gen_duration": 32.020158767700195,
+            "total_elapsed": 482.14892864227295,
+            "speedup": 0.7367473234732915
+        },
+        {
+            "generation": 4,
+            "best_latency": 0.0023667000932618976,
+            "gen_duration": 342.71244525909424,
+            "total_elapsed": 824.861706495285,
+            "speedup": 0.7367473234732915
+        },
+        {
+            "generation": 5,
+            "best_latency": 0.0023667000932618976,
+            "gen_duration": 29.195863485336304,
+            "total_elapsed": 854.0579261779785,
+            "speedup": 0.7367473234732915
+        }
+    ]
+}

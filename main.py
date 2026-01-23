@@ -11,6 +11,7 @@ def main():
     # 超参数
     parser.add_argument("--budget", type=int, default=5, help="Number of generations")
     parser.add_argument("--pop_size", type=int, default=4, help="Population size")
+    parser.add_argument("--time_limit", type=int, default=1200, help="Time limit in miliseconds for the evolution process")
     
     args = parser.parse_args()
     

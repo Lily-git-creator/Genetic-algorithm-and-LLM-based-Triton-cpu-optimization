@@ -1,10 +1,14 @@
+
+
 import os
 import glob
 import heapq
 import time
 import random
+import json
 import matplotlib.pyplot as plt
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from evaluator import Evaluator
 from llm_handler import query_mutation, query_crossover, query_de_mutation
 
@@ -15,37 +19,71 @@ class BaseEvoluter:
         self.output_dir = "outputs"
         os.makedirs(self.output_dir, exist_ok=True)
         
-        # 种群堆: 存储 (latency, unique_id, code_str, source_tag)
-        # 使用 Min-Heap，因为 latency 越小越好
         self.population_heap = [] 
-        self.history_best = [] # 记录每代最佳 Latency 用于绘图
-        self.counter = 0 # 用于生成唯一ID，防止heapq在latency相同时比较code字符串报错
+        self.history_best = [] 
+        self.counter = 0 
+        # 设置最大并发数 (建议设为 2 或 4 以避免 API 超时)
+        self.max_workers = getattr(args, 'max_workers', 2)
+        
+        # 🔥 新增：时间限制 (默认 20 分钟 = 1200 秒)
+        self.time_limit = getattr(args, 'time_limit', 1200) 
+        self.metrics = {
+            "mode": args.mode,
+            "baseline_latency": None,
+            "generations": []
+        }
+        self.metrics_file = os.path.join(self.output_dir, f"{args.mode}_metrics.json")
+
+    def _evaluate_single_worker(self, code, source):
+        """Worker 函数"""
+        success, latency, msg = self.evaluator.evaluate(code)
+        return success, latency, msg, code, source
 
     def load_initial_population(self):
-        """从 code/ 文件夹加载所有 .py 文件"""
         files = glob.glob(os.path.join("code", "*.py"))
         print(f"📂 Loading {len(files)} initial codes from 'code/'...")
         
-        for fpath in files:
-            with open(fpath, 'r', encoding='utf-8') as f:
-                code = f.read()
-            self._evaluate_and_push(code, source=os.path.basename(fpath))
+        futures = []
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            for fpath in files:
+                with open(fpath, 'r', encoding='utf-8') as f:
+                    code = f.read()
+                futures.append(executor.submit(self._evaluate_single_worker, code, os.path.basename(fpath)))
             
-        # 如果文件不够 pop_size，通过变异补齐
-        current_pop = [item[2] for item in self.population_heap]
-        while len(self.population_heap) < self.args.pop_size:
-            print("⚠️ Initial population too small, supplementing with mutations...")
-            parent = random.choice(current_pop)
-            new_code = query_mutation(parent, 0.1, "Random Init")
-            if new_code:
-                self._evaluate_and_push(new_code, source="init_supplement")
+            for future in as_completed(futures):
+                success, latency, msg, code, source = future.result()
+                self._handle_eval_result(success, latency, msg, code, source)
+                if success and "baseline" in source:
+                    self.metrics["baseline_latency"] = latency
+                    print(f"   🎯 Baseline Latency identified: {latency*1000:.4f} ms")
 
-    def _evaluate_and_push(self, code, source="unknown"):
-        """评估代码并推入堆中"""
-        success, latency, msg = self.evaluator.evaluate(code)
+            # 如果没找到名为 baseline 的文件，暂时用初始种群最慢的作为基准（保守估计）
+        if self.metrics["baseline_latency"] is None and self.population_heap:
+            self.metrics["baseline_latency"] = max(p[0] for p in self.population_heap)
+
+        current_pop = [item[2] for item in self.population_heap]
+        while len(self.population_heap) < self.args.pop_size and len(current_pop) > 0:
+            print("⚠️ Initial population too small, supplementing with mutations (Parallel)...")
+            needed = self.args.pop_size - len(self.population_heap)
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = []
+                for _ in range(needed):
+                    parent = random.choice(current_pop)
+                    futures.append(executor.submit(self._generate_and_eval_init, parent))
+                
+                for future in as_completed(futures):
+                    res = future.result()
+                    if res:
+                        self._handle_eval_result(*res)
+
+    def _generate_and_eval_init(self, parent_code):
+        new_code = query_mutation(parent_code, 0.1, "Random Init")
+        if new_code:
+            return self._evaluate_single_worker(new_code, "init_supplement")
+        return None
+
+    def _handle_eval_result(self, success, latency, msg, code, source):
         if success:
-            # heapq 放入元组 (latency, counter, code, source)
-            # counter 确保即使 latency 相同也能区分，避免比较 code 字符串
             heapq.heappush(self.population_heap, (latency, self.counter, code, source))
             self.counter += 1
             print(f"   ✅ [PASS] {latency*1000:.2f}ms | Src: {source}")
@@ -53,11 +91,27 @@ class BaseEvoluter:
             print(f"   ❌ [FAIL] {msg[:50]}... | Src: {source}")
 
     def get_top_k(self, k):
-        """获取当前堆中最好的 k 个个体"""
         return heapq.nsmallest(k, self.population_heap)
 
+    def save_metrics(self):
+        """🔥 将当前指标保存到 JSON"""
+        with open(self.metrics_file, "w") as f:
+            json.dump(self.metrics, f, indent=4)
+
+    def record_generation(self, gen_idx, best_latency, gen_time, total_time):
+        """🔥 记录每一代的数据"""
+        data = {
+            "generation": gen_idx,
+            "best_latency": best_latency,
+            "gen_duration": gen_time,
+            "total_elapsed": total_time,
+            "speedup": max(self.metrics["baseline_latency"] / best_latency - 1, 0) if self.metrics["baseline_latency"] else 0
+        }
+        self.metrics["generations"].append(data)
+        self.save_metrics()
+
     def visualize(self):
-        """绘制进化曲线"""
+        if not self.history_best: return
         plt.figure(figsize=(10, 6))
         plt.plot(self.history_best, marker='o', linestyle='-', color='b')
         plt.title(f"Evolution Progress ({self.args.mode})")
@@ -68,178 +122,218 @@ class BaseEvoluter:
         print(f"📊 Visualization saved to {self.output_dir}/evolution_curve.png")
 
     def save_best(self, gen):
-        """保存当前最佳代码"""
         if not self.population_heap: return
-        best = self.population_heap[0] # Heap 根节点就是最小值
+        best = self.population_heap[0]
         with open(os.path.join(self.output_dir, f"best_gen_{gen}.py"), "w") as f:
             f.write(best[2])
 
     def run(self):
         raise NotImplementedError
 
-# --- 策略 1: ParaEvoluter (改写/爬山) ---
+# --- 策略 1: ParaEvoluter (并行版) ---
 class ParaEvoluter(BaseEvoluter):
+    def _process_elite(self, item, gen):
+        latency, _, code, src = item
+        new_code = query_mutation(code, latency, "Optimize tiling and vectorization for CPU")
+        if new_code:
+            return self._evaluate_single_worker(new_code, f"gen{gen}_para")
+        return None
+
     def run(self):
         self.load_initial_population()
         
+        # 🔥 记录总开始时间
+        total_start_time = time.time()
+        
         for gen in range(self.args.budget):
-            print(f"\n🔄 === Generation {gen+1} (Para/Hill-Climbing) ===")
+            # 🔥 早停检查
+            elapsed_total = time.time() - total_start_time
+            if elapsed_total > self.time_limit:
+                print(f"\n🛑 [EARLY STOP] Total time {elapsed_total:.2f}s exceeded limit {self.time_limit}s.")
+                break
+
+            # 🔥 记录本代开始时间
+            gen_start_time = time.time()
+            print(f"\n🔄 === Generation {gen+1} (Para) [Elapsed: {elapsed_total/60:.1f}m] ===")
             
-            # 1. 精英选择: 选出 Top K
-            elites = self.get_top_k(self.args.pop_size) # 保持种群大小
-            
-            # 2. 对每个精英进行变异 (Paraphrasing/Mutation)
-            # 为了防止种群退化，我们保留精英，生成的孩子加入竞争
-            # 这里简单处理：清空堆，重新评估精英+孩子 (或者只保留最好的 N 个)
-            # 为简化逻辑：我们每次生成新的一批，然后全部 push 进 heap，最后截断
-            
-            new_candidates = []
+            elites = self.get_top_k(self.args.pop_size)
+            if not elites: break
             best_latency = elites[0][0]
             self.history_best.append(best_latency)
             print(f"🏆 Gen Best: {best_latency*1000:.4f} ms")
 
-            for item in elites:
-                latency, _, code, src = item
-                # 生成新代码
-                new_code = query_mutation(code, latency, "Optimize tiling and vectorization")
-                if new_code:
-                    new_candidates.append(new_code)
+            print(f"🧬 Processing {len(elites)} elites in parallel...")
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = [executor.submit(self._process_elite, item, gen) for item in elites]
+                
+                for future in as_completed(futures):
+                    result = future.result()
+                    if result:
+                        self._handle_eval_result(*result)
             
-            # 3. 评估新候选者
-            print(f"🧬 Evaluating {len(new_candidates)} offspring...")
-            for code in new_candidates:
-                self._evaluate_and_push(code, source=f"gen{gen}_para")
-            
-            # 4. 优胜劣汰 (截断堆，只保留最好的 pop_size 个)
-            # heapq.nsmallest 返回列表，我们需要重新构建堆
             best_individuals = heapq.nsmallest(self.args.pop_size, self.population_heap)
-            self.population_heap = [] # 清空
+            self.population_heap = []
             for item in best_individuals:
-                heapq.heappush(self.population_heap, item) # 重新入堆
+                heapq.heappush(self.population_heap, item)
 
             self.save_best(gen)
+            
+            # 🔥 记录本代耗时
+            gen_duration = time.time() - gen_start_time
+            self.record_generation(gen+1, self.population_heap[0][0], gen_duration, elapsed_total + gen_duration)
+            
         self.visualize()
 
-# --- 策略 2: GAEvoluter (遗传算法 - 杂交) ---
+# --- 策略 2: GAEvoluter (并行版) ---
 class GAEvoluter(BaseEvoluter):
+    def _process_offspring(self, current_pop, gen):
+        pool_mom = random.sample(current_pop, min(3, len(current_pop)))
+        pool_dad = random.sample(current_pop, min(3, len(current_pop)))
+        mom = min(pool_mom, key=lambda x: x[0])
+        dad = min(pool_dad, key=lambda x: x[0])
+        
+        child_code = query_crossover(mom[2], dad[2])
+        if random.random() < 0.2 and child_code:
+            child_code = query_mutation(child_code, 0, "Small tweak")
+        
+        if child_code:
+            return self._evaluate_single_worker(child_code, f"gen{gen}_GA")
+        return None
+
     def run(self):
         self.load_initial_population()
         
+        # 🔥 记录总开始时间
+        total_start_time = time.time()
+        
         for gen in range(self.args.budget):
-            print(f"\n🧬 === Generation {gen+1} (Genetic Algorithm) ===")
+            # 🔥 早停检查
+            elapsed_total = time.time() - total_start_time
+            if elapsed_total > self.time_limit:
+                print(f"\n🛑 [EARLY STOP] Total time {elapsed_total:.2f}s exceeded limit {self.time_limit}s.")
+                break
+
+            # 🔥 记录本代开始时间
+            gen_start_time = time.time()
+            print(f"\n🧬 === Generation {gen+1} (GA) [Elapsed: {elapsed_total/60:.1f}m] ===")
             
             current_pop = self.get_top_k(len(self.population_heap))
+            if not current_pop: break
             best_latency = current_pop[0][0]
             self.history_best.append(best_latency)
             print(f"🏆 Gen Best: {best_latency*1000:.4f} ms")
             
-            new_offsprings = []
+            print(f"   💕 Generating {self.args.pop_size} offsprings...")
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = [executor.submit(self._process_offspring, current_pop, gen) 
+                           for _ in range(self.args.pop_size)]
+                
+                for future in as_completed(futures):
+                    result = future.result()
+                    if result:
+                        self._handle_eval_result(*result)
             
-            # 生成 pop_size 个孩子
-            for _ in range(self.args.pop_size):
-                # 1. 锦标赛选择 (Tournament Selection)
-                # 随机选 3 个，取最好的作为父代
-                pool_mom = random.sample(current_pop, min(3, len(current_pop)))
-                pool_dad = random.sample(current_pop, min(3, len(current_pop)))
-                mom = min(pool_mom, key=lambda x: x[0])
-                dad = min(pool_dad, key=lambda x: x[0])
-                
-                # 2. 杂交 (Crossover)
-                print(f"   💕 Crossover: {mom[3]} + {dad[3]}")
-                child_code = query_crossover(mom[2], dad[2])
-                
-                # 3. 变异 (Mutation - 小概率)
-                if random.random() < 0.2 and child_code:
-                    print("   🧪 Mutation triggered...")
-                    child_code = query_mutation(child_code, 0, "Small tweak")
-                
-                if child_code:
-                    new_offsprings.append(child_code)
-
-            # 评估孩子
-            for code in new_offsprings:
-                self._evaluate_and_push(code, source=f"gen{gen}_GA")
-            
-            # 种群更新：保留最好的 pop_size
             best_individuals = heapq.nsmallest(self.args.pop_size, self.population_heap)
             self.population_heap = []
             for item in best_individuals:
                 heapq.heappush(self.population_heap, item)
                 
             self.save_best(gen)
+            
+            # 🔥 记录本代耗时
+            gen_duration = time.time() - gen_start_time
+            self.record_generation(gen+1, self.population_heap[0][0], gen_duration, elapsed_total + gen_duration)
+            
         self.visualize()
 
-# --- 策略 3: DEEvoluter (差分进化) ---
+# --- 策略 3: DEEvoluter (并行版) ---
 class DEEvoluter(BaseEvoluter):
+    def _process_de_individual(self, idx, target, best_global, current_pop, gen):
+        if target == best_global:
+            return idx, None, True
+
+        remaining_pool = [p for p in current_pop if p != target]
+        if not remaining_pool: remaining_pool = [target]
+        random_sample = random.choice(remaining_pool)
+        
+        trial_code = query_de_mutation(target[2], best_global[2], random_sample[2])
+        
+        if trial_code:
+            success, latency, msg = self.evaluator.evaluate(trial_code)
+            return idx, (success, latency, msg, trial_code, f"gen{gen}_DE"), False
+        
+        return idx, None, False
+
     def run(self):
         self.load_initial_population()
         
+        # 🔥 记录总开始时间
+        total_start_time = time.time()
+        
         for gen in range(self.args.budget):
-            print(f"\n🚀 === Generation {gen+1} (Differential Evolution) ===")
+            # 🔥 早停检查
+            elapsed_total = time.time() - total_start_time
+            if elapsed_total > self.time_limit:
+                print(f"\n🛑 [EARLY STOP] Total time {elapsed_total:.2f}s exceeded limit {self.time_limit}s.")
+                break
+                
+            # 🔥 记录本代开始时间
+            gen_start_time = time.time()
+            print(f"\n🚀 === Generation {gen+1} (DE) [Elapsed: {elapsed_total/60:.1f}m] ===")
             
-            # 获取当前所有个体
             current_pop = self.get_top_k(len(self.population_heap))
-            best_global = current_pop[0] # 堆顶即最小值（最优）
+            if not current_pop: break
+            best_global = current_pop[0]
             self.history_best.append(best_global[0])
             print(f"🏆 Gen Best: {best_global[0]*1000:.4f} ms")
             
-            next_generation_candidates = []
+            next_generation_candidates = [None] * len(current_pop)
             
-            # --- 核心循环 ---
-            for i in range(len(current_pop)):
-                target = current_pop[i]
+            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+                futures = {}
+                for i in range(len(current_pop)):
+                    future = executor.submit(
+                        self._process_de_individual, 
+                        i, current_pop[i], best_global, current_pop, gen
+                    )
+                    futures[future] = i
                 
-                # 策略: 强制保留精英 (Elitism)
-                # 如果当前个体是最好的，直接进入下一代，确保最优解不丢失
-                if target == best_global:
-                    next_generation_candidates.append(target)
-                    continue
-
-                # 选择 Random 个体 (不能是 target 自身)
-                remaining_pool = [p for p in current_pop if p != target]
-                if not remaining_pool:
-                    remaining_pool = [target] # 防止极端情况
-                random_sample = random.choice(remaining_pool)
+                print(f"   ⚡ Running DE ops for {len(current_pop)} individuals...")
                 
-                print(f"   ⚡ DE Op: Target({target[3]}) <- Best({best_global[3]}) - Random({random_sample[3]})")
-                
-                # LLM 模拟语义差分: V = Target + F(Best - Random)
-                trial_code = query_de_mutation(target[2], best_global[2], random_sample[2])
-                
-                latency = None # 初始化
-                success = False
-
-                if trial_code:
-                    success, latency, _ = self.evaluator.evaluate(trial_code)
-                
-                # --- 贪婪选择 (Greedy Selection) ---
-                # DE 的核心：只有当孩子比父亲好，才替换父亲
-                if success and latency < target[0]:
-                    print(f"      ✅ Improved! {latency*1000:.2f}ms < {target[0]*1000:.2f}ms")
-                    next_generation_candidates.append((latency, self.counter, trial_code, f"gen{gen}_DE"))
-                    self.counter += 1
-                else:
-                    # 否则，保留原有的 Target
-                    print(f"      ❌ No gain (Keep Target).")
-                    next_generation_candidates.append(target)
+                for future in as_completed(futures):
+                    idx, eval_res, is_elite = future.result()
+                    target = current_pop[idx]
+                    
+                    if is_elite:
+                        next_generation_candidates[idx] = target
+                        continue
+                    
+                    improved = False
+                    if eval_res:
+                        success, latency, msg, code, src = eval_res
+                        if success and latency < target[0]:
+                            next_generation_candidates[idx] = (latency, self.counter, code, src)
+                            self.counter += 1
+                            print(f"      ✅ Idx {idx} Improved! {latency*1000:.2f}ms < {target[0]*1000:.2f}ms")
+                            improved = True
+                    
+                    if not improved:
+                        next_generation_candidates[idx] = target
             
-            # --- 种群更新 (修复版) ---
-            # 1. 清空旧堆
             self.population_heap = []
-            
-            # 2. 将下一代推入堆
             for item in next_generation_candidates:
-                heapq.heappush(self.population_heap, item)
+                if item:
+                    heapq.heappush(self.population_heap, item)
             
-            # 3. 确保堆大小不超过 pop_size (使用 nsmallest 逻辑)
-            # 虽然标准的 DE 种群大小不变，但为了防止意外膨胀，我们可以做一次截断
             if len(self.population_heap) > self.args.pop_size:
-                # nsmallest 返回最小的 k 个元素（即 Latency 最低的）
                 best_k = heapq.nsmallest(self.args.pop_size, self.population_heap)
                 self.population_heap = []
                 for item in best_k:
                     heapq.heappush(self.population_heap, item)
             
             self.save_best(gen)
-        
+            
+            # 🔥 记录本代耗时
+            gen_duration = time.time() - gen_start_time
+            self.record_generation(gen+1, self.population_heap[0][0], gen_duration, elapsed_total + gen_duration)
         self.visualize()

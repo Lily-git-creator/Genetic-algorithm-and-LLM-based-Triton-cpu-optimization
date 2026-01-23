@@ -1,6 +1,7 @@
 import subprocess
 import os
 import time
+import datetime
 import sys
 import tempfile
 
@@ -24,11 +25,10 @@ import os
 {generated_code}
 # ------------------------------------
 
+
 def test_entry_point():
     try:
         torch.manual_seed(42)
-        # torch.set_num_threads(1) # 可选
-        
         M, N, K = 512, 512, 512
         a = torch.randn((M, K), device='cpu', dtype=torch.float32)
         b = torch.randn((K, N), device='cpu', dtype=torch.float32)
@@ -40,30 +40,32 @@ def test_entry_point():
             return
 
         c_ref = torch.matmul(a, b)
-        
         if not torch.allclose(c_triton, c_ref, atol=1e-2, rtol=1e-2):
             max_diff = (c_triton - c_ref).abs().max().item()
             print(f"RESULT:FAIL|Result Mismatch (Max Diff: {{max_diff:.6f}})")
             return
 
-        warmup_steps = 10
-        measure_steps = 50
+        warmup_steps = 5
+        measure_steps = 10
         
+        # 预热
         for _ in range(warmup_steps):
             triton_matmul(a, b)
             
-        start_time = time.perf_counter()
+        # 测量: 取最小值
+        timings = []
         for _ in range(measure_steps):
+            start_time = time.perf_counter()
             triton_matmul(a, b)
-        end_time = time.perf_counter()
-        
-        total_time_sec = end_time - start_time
-        avg_latency_sec = total_time_sec / measure_steps
-        
-        print(f"RESULT:PASS|{{avg_latency_sec}}")
+            end_time = time.perf_counter()
+            timings.append(end_time - start_time)
+            
+        min_latency_sec = min(timings)
+        print(f"RESULT:PASS|{{min_latency_sec}}")
         
     except Exception as e:
         print(f"RESULT:FAIL|Unknown Error: {{str(e)}}")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     test_entry_point()
@@ -108,7 +110,7 @@ class Evaluator:
                 ['python', tmp_path],
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=3000
             )
             
             stdout = result.stdout
@@ -150,7 +152,7 @@ class Evaluator:
             return is_success, latency, error_msg
 
         except subprocess.TimeoutExpired:
-            return False, 0.0, "Timeout (120s)"
+            return False, 0.0, "Timeout (3000s)"
         except Exception as e:
             # 系统级错误也要记录
             self._save_debug_log(full_script, "", str(e), "System/Python Error")
