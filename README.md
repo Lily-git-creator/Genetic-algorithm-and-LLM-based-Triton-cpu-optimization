@@ -9,38 +9,93 @@
 ## Overview
 ### 1. 整体架构
 ```
-triton-operator-optimization/
-├── README.md                  # 项目说明文档
-├── evolution_algorithms/      # 进化算法核心模块（多种算法实现）
-│   ├── __init__.py
-│   ├── evoluter.py       # 爬山算法（ParaEvoluter）遗传算法（GA）差分进化算法（DE）
-│   └── genetic_algorithm.py   # 遗传算法（GA）
-├── multi_agent/               # 多Agent协作模块
-│   ├── __init__.py
-│   ├── role_agents.py         # 角色Agent定义（Tiling优化、Vector优化等）
-│   ├── maco_strategy.py       # 多Agent协作策略（MACO：变异、杂交、约束控制）
-│   └── meta_agent.py          # Meta-Agent（硬件监控反馈、动态优化建议）
-├── llm_handler/               # LLM交互模块
-│   ├── __init__.py
-│   ├── prompt_templates.py    # 提示词模板（通用约束+角色特定提示）
-│   └── llm_client.py          # LLM调用客户端（支持API并发、异步请求）
-├── evaluator/                 # 评估器模块
-│   ├── __init__.py
-│   ├── latency_evaluator.py   # 延迟评估（多次测试取稳定值）
-│   ├── hardware_monitor.py    # 硬件监控（Linux Perf/FlameGraph采集Cache Miss等）
-│   └── validity_checker.py    # 代码有效性校验（接口/逻辑不修改、语法正确）
-├── utils/                     # 工具函数目录
-│   ├── __init__.py
-│   ├── data_process.py        # 结果保存、可视化（延迟/时间对比图生成）
-│   ├── logger.py              # 日志记录（优化过程、参数、结果）
-│   └── pipeline.py            # 异构异步流水线（解耦IO与计算密集型任务）
-├── examples/                  # 示例目录
-│   ├── matmul_optimize.py     # 矩阵乘法算子优化示例
-│   └── rmsnorm_optimize.py    # RMSNorm算子优化示例
-└── tests/                     # 单元测试目录
-    ├── __init__.py
-    ├── test_evolution_algos.py  # 进化算法测试
-    └── test_multi_agent.py    # 多Agent协作测试
+Genetic-algorithm-and-LLM-based-Triton-cpu-optimization
+├── evolution_algorithms
+│   ├── best_kernel_optimized.py
+│   ├── evaluator.py
+│   ├── evoluter.py
+│   ├── init_generator_llm.py
+│   ├── init_generator.py
+│   ├── llm_handler.py
+│   ├── main.py
+│   ├── outputs
+│   │   ├── best_gen_0.py
+│   │   ├── best_gen_1.py
+│   │   ├── best_gen_2.py
+│   │   ├── best_gen_3.py
+│   │   ├── best_gen_4.py
+│   │   ├── best_gen_5.py
+│   │   ├── best_gen_6.py
+│   │   ├── best_gen_7.py
+│   │   ├── best_gen_8.py
+│   │   ├── best_gen_9.py
+│   │   ├── de_metrics.json
+│   │   ├── evolution_curve.png
+│   │   ├── ga_metrics.json
+│   │   └── para_metrics.json
+│   ├── run_benchmark.sh
+│   ├── visualize_result.py
+│   └── 运行代码指南.md
+├── generated_code
+│   ├── baseline.py
+│   ├── seed_0_M128_N16_K32.py
+│   ├── seed_1_M64_N64_K64.py
+│   ├── seed_2_M16_N32_K32.py
+│   ├── seed_3_M16_N16_K32.py
+│   ├── seed_4_M128_N128_K64.py
+│   ├── seed_5_M64_N32_K16.py
+│   ├── seed_6_M16_N64_K64.py
+│   └── seed_7_M64_N128_K16.py
+├── multi_agent
+│   ├── evaluator.py
+│   ├── evolution_main_k.py
+│   ├── evolution_main.py
+│   ├── evolution_path_optimized.png
+│   ├── llm_handler.py
+│   ├── README.md
+│   ├── results_20260122
+│   │   ├── evolution_history_1.json
+│   │   ├── evolution_history_1.log
+│   │   ├── evolution_history_1.png
+│   │   ├── evolution_history_2.json
+│   │   ├── evolution_history_2.log
+│   │   ├── evolution_history_2.png
+│   │   ├── evolution_history_3.json
+│   │   ├── evolution_history_3.log
+│   │   ├── evolution_history_3.png
+│   │   ├── evolution_history_4.json
+│   │   ├── evolution_history_4.log
+│   │   ├── evolution_history_4.png
+│   │   ├── evolution_history_5.json
+│   │   ├── evolution_history_5.log
+│   │   ├── evolution_history_5.png
+│   │   ├── evolution_k_history_1.json
+│   │   ├── evolution_k_history_1.log
+│   │   ├── evolution_k_history_1.png
+│   │   ├── evolution_k_history_2.json
+│   │   ├── evolution_k_history_2.log
+│   │   ├── evolution_k_history_2.png
+│   │   ├── evolution_k_history_3.json
+│   │   ├── evolution_k_history_3.log
+│   │   ├── evolution_k_history_3.png
+│   │   ├── evolution_k_history_4.json
+│   │   ├── evolution_k_history_4.log
+│   │   ├── evolution_k_history_4.png
+│   │   ├── evolution_k_history_5.json
+│   │   ├── evolution_k_history_5.log
+│   │   ├── evolution_k_history_5.png
+│   │   ├── plot_time_breakdown.py
+│   │   ├── png
+│   │   └── time_vs_generation.png
+│   └── visualizer.py
+├── README.md
+├── triton-cpu
+│   ├── matmul.py
+│   └── rmsnorm.py
+└── utils
+    ├── latency_distribution.png
+    ├── profiler.py
+    └── program_latency.py
 ```
 
 ### 2. 核心工作流程
