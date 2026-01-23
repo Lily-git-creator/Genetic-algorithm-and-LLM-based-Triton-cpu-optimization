@@ -9,59 +9,33 @@
 ## Overview
 ### 1. 整体架构
 ```
-Genetic-algorithm-and-LLM-based-Triton-cpu-optimization
-├── evolution_algorithms
-│   ├── best_kernel_optimized.py
-│   ├── evaluator.py
-│   ├── evoluter.py
-│   ├── init_generator_llm.py
-│   ├── init_generator.py
-│   ├── llm_handler.py
-│   ├── main.py
-│   ├── outputs
-│   │   ├── best_gen_0.py
-│   │   ├── best_gen_1.py
-│   │   ├── ···
-│   │   ├── de_metrics.json
-│   │   ├── evolution_curve.png
-│   │   ├── ga_metrics.json
-│   │   └── para_metrics.json
-│   ├── run_benchmark.sh
-│   ├── visualize_result.py
-│   └── 运行代码指南.md
-├── generated_code
+Genetic-algorithm-and-LLM-based-Triton-cpu-optimization/
+├── evolution_algorithms/       # 核心进化算法实现
+│   ├── evoluter.py            # 进化算法基类与逻辑
+│   ├── evaluator.py           # 代码性能评估器 (Latency测算)
+│   ├── llm_handler.py         # LLM API 调用接口 (Deepseek等)
+│   ├── init_generator.py      # 初始种群生成
+│   ├── main.py                # 进化算法主入口
+│   ├── run_benchmark.sh       # 批量运行脚本
+│   └── outputs/               # 迭代过程中的最佳代码与指标日志
+│
+├── multi_agent/               # 多智能体协作优化实现 (MACO)
+│   ├── evolution_main.py      # 多智能体进化主程序
+│   ├── evaluator.py           # 针对 Agent 的评估器
+│   ├── visualizer.py          # 进化路径可视化工具
+│   └── results_*/             # 实验结果记录 (Logs, JSONs, Plots)
+│
+├── triton-cpu/                # Triton CPU 算子基准代码
+│   ├── matmul.py              # 矩阵乘法算子
+│   └── rmsnorm.py             # RMSNorm 算子
+│
+├── generated_code/            # 生成的中间代码与种子代码
 │   ├── baseline.py
-│   ├── seed_0_M128_N16_K32.py
-│   ├── seed_1_M64_N64_K64.py
-│   └── ···
-├── multi_agent
-│   ├── evaluator.py
-│   ├── evolution_main_k.py
-│   ├── evolution_main.py
-│   ├── evolution_path_optimized.png
-│   ├── llm_handler.py
-│   ├── README.md
-│   ├── results_20260122
-│   │   ├── evolution_history_1.json
-│   │   ├── evolution_history_1.log
-│   │   ├── evolution_history_1.png
-│   │   ├── ···
-│   │   ├── evolution_k_history_1.json
-│   │   ├── evolution_k_history_1.log
-│   │   ├── evolution_k_history_1.png
-│   │   ├── ···
-│   │   ├── plot_time_breakdown.py
-│   │   ├── png
-│   │   └── time_vs_generation.png
-│   └── visualizer.py
-├── README.md
-├── triton-cpu
-│   ├── matmul.py
-│   └── rmsnorm.py
-└── utils
-    ├── latency_distribution.png
-    ├── profiler.py
-    └── program_latency.py
+│   └── seed_*.py              # 不同配置的初始种子
+│
+└── utils/                     # 通用工具集
+    ├── profiler.py            # 性能分析工具
+    └── program_latency.py     # 延迟测试脚本
 ```
 
 ### 2. 核心工作流程
