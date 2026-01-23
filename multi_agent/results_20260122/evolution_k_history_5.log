@@ -1,0 +1,42 @@
+🚀 Initializing Population...
+⚖️ Calibrating Baseline (5 runs)...
+   Run 1: 3.084 ms
+   Run 2: 3.170 ms
+   Run 3: 3.641 ms
+   Run 4: 3.028 ms
+   Run 5: 3.569 ms
+🎯 Baseline Calibrated: 3.028 ms (Best of 5x50 runs)
+   -> Baseline added to population.
+🌱 Bootstrapping population to size 4...
+   -> Added init individual: 2.266 ms
+   -> Added init individual: 2.380 ms
+   -> Added init individual: 2.809 ms
+✅ Population initialized. Count: 4
+
+🔄 === Gen 1/5 | Best: 2.2658 ms | Source: init_mutation ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 343.44s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 7      | 327.42     | 46.77    | 95.3  %
+Evaluator_Run        | 11     | 258.80     | 23.53    | 75.4  %
+============================================================
+
+
+🔄 === Gen 2/5 | Best: 2.2658 ms | Source: init_mutation ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 410.87s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 11     | 429.24     | 39.02    | 104.5 %
+Evaluator_Run        | 15     | 302.14     | 20.14    | 73.5  %
+============================================================
+
+
+🔄 === Gen 3/5 | Best: 2.2658 ms | Source: init_mutation ===
+
+🛑 Early stopping triggered!

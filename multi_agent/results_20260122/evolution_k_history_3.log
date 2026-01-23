@@ -1,0 +1,73 @@
+🚀 Initializing Population...
+⚖️ Calibrating Baseline (5 runs)...
+   Run 1: 3.416 ms
+   Run 2: 3.789 ms
+   Run 3: 2.720 ms
+   Run 4: 3.640 ms
+   Run 5: 3.920 ms
+🎯 Baseline Calibrated: 2.720 ms (Best of 5x50 runs)
+   -> Baseline added to population.
+🌱 Bootstrapping population to size 4...
+   -> Added init individual: 2.967 ms
+   -> Added init individual: 2.942 ms
+✅ Population initialized. Count: 3
+
+🔄 === Gen 1/5 | Best: 2.7201 ms | Source: baseline ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 144.76s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 7      | 312.03     | 44.58    | 215.6 %
+Evaluator_Run        | 10     | 69.59      | 6.96     | 48.1  %
+============================================================
+
+
+🔄 === Gen 2/5 | Best: 2.4575 ms | Source: gen1_crossover ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 263.04s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 11     | 458.54     | 41.69    | 174.3 %
+Evaluator_Run        | 12     | 166.09     | 13.84    | 63.1  %
+============================================================
+
+
+🔄 === Gen 3/5 | Best: 2.0957 ms | Source: gen2_mut_vector_expert ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 488.21s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 15     | 564.49     | 37.63    | 115.6 %
+Evaluator_Run        | 16     | 367.71     | 22.98    | 75.3  %
+============================================================
+
+
+🔄 === Gen 4/5 | Best: 0.9171 ms | Source: gen3_crossover ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 592.24s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 19     | 676.38     | 35.60    | 114.2 %
+Evaluator_Run        | 18     | 444.39     | 24.69    | 75.0  %
+============================================================
+
+
+🔄 === Gen 5/5 | Best: 0.7728 ms | Source: gen4_mut_tiling_expert ===
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 655.69s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+LLM_API_Call         | 23     | 803.89     | 34.95    | 122.6 %
+Evaluator_Run        | 22     | 476.72     | 21.67    | 72.7  %
+============================================================
+

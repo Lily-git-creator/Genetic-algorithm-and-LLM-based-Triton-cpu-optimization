@@ -1,0 +1,103 @@
+[
+  {
+    "id": "de96bec3",
+    "parents": [],
+    "generation": 0,
+    "latency": 0.0018688199343159795,
+    "method": "baseline"
+  },
+  {
+    "id": "a04508d5",
+    "parents": [
+      "de96bec3"
+    ],
+    "generation": 0,
+    "latency": 0.0039492599898949265,
+    "method": "init_mutation"
+  },
+  {
+    "id": "b08300bd",
+    "parents": [
+      "de96bec3"
+    ],
+    "generation": 0,
+    "latency": 0.0031524200458079576,
+    "method": "init_mutation"
+  },
+  {
+    "id": "0880c4dc",
+    "parents": [
+      "de96bec3",
+      "b08300bd"
+    ],
+    "generation": 1,
+    "latency": 0.004194959998130798,
+    "method": "gen1_crossover"
+  },
+  {
+    "id": "1be15346",
+    "parents": [
+      "b08300bd"
+    ],
+    "generation": 1,
+    "latency": 0.0038243799936026335,
+    "method": "gen1_mut_tiling_expert"
+  },
+  {
+    "id": "9edbf16f",
+    "parents": [
+      "de96bec3"
+    ],
+    "generation": 1,
+    "latency": 0.0037832100642845035,
+    "method": "gen1_mut_vector_expert"
+  },
+  {
+    "id": "627f22eb",
+    "parents": [
+      "b08300bd",
+      "de96bec3"
+    ],
+    "generation": 1,
+    "latency": 0.004035259946249425,
+    "method": "gen1_crossover"
+  },
+  {
+    "id": "f141906b",
+    "parents": [
+      "de96bec3",
+      "b08300bd"
+    ],
+    "generation": 2,
+    "latency": 0.0040979000041261315,
+    "method": "gen2_crossover"
+  },
+  {
+    "id": "7d678188",
+    "parents": [
+      "b08300bd"
+    ],
+    "generation": 2,
+    "latency": 0.0026088800514116883,
+    "method": "gen2_mut_vector_expert"
+  },
+  {
+    "id": "bfa90c2c",
+    "parents": [
+      "de96bec3"
+    ],
+    "generation": 2,
+    "latency": 0.002205150085501373,
+    "method": "gen2_mut_tiling_expert"
+  },
+  {
+    "id": "7b64e317",
+    "parents": [
+      "b08300bd",
+      "de96bec3"
+    ],
+    "generation": 2,
+    "latency": 0.0028937699971720576,
+    "method": "gen2_crossover"
+  }
+]

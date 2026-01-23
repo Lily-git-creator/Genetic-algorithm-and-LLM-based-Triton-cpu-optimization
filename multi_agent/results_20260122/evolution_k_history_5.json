@@ -1,0 +1,102 @@
+[
+  {
+    "id": "89d79165",
+    "parents": [],
+    "generation": 0,
+    "latency": 0.0030277599580585957,
+    "method": "baseline"
+  },
+  {
+    "id": "88ff0524",
+    "parents": [
+      "89d79165"
+    ],
+    "generation": 0,
+    "latency": 0.0022658099187538028,
+    "method": "init_mutation"
+  },
+  {
+    "id": "a1362906",
+    "parents": [
+      "89d79165"
+    ],
+    "generation": 0,
+    "latency": 0.00238017993979156,
+    "method": "init_mutation"
+  },
+  {
+    "id": "96f441b9",
+    "parents": [
+      "89d79165"
+    ],
+    "generation": 0,
+    "latency": 0.0028091500280424953,
+    "method": "init_mutation"
+  },
+  {
+    "id": "79bb463d",
+    "parents": [
+      "88ff0524"
+    ],
+    "generation": 1,
+    "latency": 0.0026051599998027086,
+    "method": "gen1_mut_vector_expert"
+  },
+  {
+    "id": "b7eceb38",
+    "parents": [
+      "a1362906",
+      "88ff0524"
+    ],
+    "generation": 1,
+    "latency": 0.003168000024743378,
+    "method": "gen1_crossover"
+  },
+  {
+    "id": "b318eec7",
+    "parents": [
+      "a1362906"
+    ],
+    "generation": 1,
+    "latency": 0.005208750022575259,
+    "method": "gen1_mut_tiling_expert"
+  },
+  {
+    "id": "b9d570b7",
+    "parents": [
+      "a1362906"
+    ],
+    "generation": 2,
+    "latency": 0.002963690087199211,
+    "method": "gen2_mut_tiling_expert"
+  },
+  {
+    "id": "43eea6c8",
+    "parents": [
+      "88ff0524",
+      "a1362906"
+    ],
+    "generation": 2,
+    "latency": 0.0030494400998577476,
+    "method": "gen2_crossover"
+  },
+  {
+    "id": "1e7d0810",
+    "parents": [
+      "a1362906",
+      "88ff0524"
+    ],
+    "generation": 2,
+    "latency": 0.004071770003065467,
+    "method": "gen2_crossover"
+  },
+  {
+    "id": "1a085c4a",
+    "parents": [
+      "88ff0524"
+    ],
+    "generation": 2,
+    "latency": 0.027203419944271445,
+    "method": "gen2_mut_vector_expert"
+  }
+]

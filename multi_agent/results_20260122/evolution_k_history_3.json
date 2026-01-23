@@ -1,0 +1,167 @@
+[
+  {
+    "id": "8205ea05",
+    "parents": [],
+    "generation": 0,
+    "latency": 0.0027200999902561307,
+    "method": "baseline"
+  },
+  {
+    "id": "afcb72a2",
+    "parents": [
+      "8205ea05"
+    ],
+    "generation": 0,
+    "latency": 0.0029672899981960654,
+    "method": "init_mutation"
+  },
+  {
+    "id": "9745aa64",
+    "parents": [
+      "8205ea05"
+    ],
+    "generation": 0,
+    "latency": 0.002941999933682382,
+    "method": "init_mutation"
+  },
+  {
+    "id": "bc3dac29",
+    "parents": [
+      "8205ea05"
+    ],
+    "generation": 1,
+    "latency": 0.005378550034947693,
+    "method": "gen1_mut_vector_expert"
+  },
+  {
+    "id": "f91be202",
+    "parents": [
+      "9745aa64",
+      "8205ea05"
+    ],
+    "generation": 1,
+    "latency": 0.00245750998146832,
+    "method": "gen1_crossover"
+  },
+  {
+    "id": "f59663f1",
+    "parents": [
+      "9745aa64"
+    ],
+    "generation": 1,
+    "latency": 0.006631550029851496,
+    "method": "gen1_mut_vector_expert"
+  },
+  {
+    "id": "f9784f0d",
+    "parents": [
+      "8205ea05"
+    ],
+    "generation": 2,
+    "latency": 0.0020957300439476967,
+    "method": "gen2_mut_vector_expert"
+  },
+  {
+    "id": "ef079613",
+    "parents": [
+      "f91be202"
+    ],
+    "generation": 2,
+    "latency": 0.009087010053917766,
+    "method": "gen2_mut_vector_expert"
+  },
+  {
+    "id": "6e79a7dc",
+    "parents": [
+      "f9784f0d"
+    ],
+    "generation": 3,
+    "latency": 0.0018418800318613648,
+    "method": "gen3_mut_tiling_expert"
+  },
+  {
+    "id": "56afbbce",
+    "parents": [
+      "f91be202",
+      "f9784f0d"
+    ],
+    "generation": 3,
+    "latency": 0.0009170599514618516,
+    "method": "gen3_crossover"
+  },
+  {
+    "id": "58a7f517",
+    "parents": [
+      "f9784f0d",
+      "f91be202"
+    ],
+    "generation": 3,
+    "latency": 0.000947279972024262,
+    "method": "gen3_crossover"
+  },
+  {
+    "id": "12729be3",
+    "parents": [
+      "f91be202"
+    ],
+    "generation": 3,
+    "latency": 0.002838960033841431,
+    "method": "gen3_mut_vector_expert"
+  },
+  {
+    "id": "9c0b7a80",
+    "parents": [
+      "56afbbce"
+    ],
+    "generation": 4,
+    "latency": 0.000830410048365593,
+    "method": "gen4_mut_tiling_expert"
+  },
+  {
+    "id": "e508372d",
+    "parents": [
+      "58a7f517"
+    ],
+    "generation": 4,
+    "latency": 0.0007728399941697717,
+    "method": "gen4_mut_tiling_expert"
+  },
+  {
+    "id": "518ee40c",
+    "parents": [
+      "e508372d"
+    ],
+    "generation": 5,
+    "latency": 0.0006336600054055452,
+    "method": "gen5_mut_vector_expert"
+  },
+  {
+    "id": "8d28b1c3",
+    "parents": [
+      "9c0b7a80",
+      "e508372d"
+    ],
+    "generation": 5,
+    "latency": 0.0007374701090157032,
+    "method": "gen5_crossover"
+  },
+  {
+    "id": "3046b9ad",
+    "parents": [
+      "e508372d",
+      "9c0b7a80"
+    ],
+    "generation": 5,
+    "latency": 0.0007943999953567982,
+    "method": "gen5_crossover"
+  },
+  {
+    "id": "7ee657a7",
+    "parents": [
+      "9c0b7a80"
+    ],
+    "generation": 5,
+    "latency": 0.0013709700433537364,
+    "method": "gen5_mut_vector_expert"
+  }
+]

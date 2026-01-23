@@ -1,0 +1,103 @@
+🚀 Initializing Population...
+⚖️ Calibrating Baseline (5 runs)...
+   Run 1: 2.879 ms
+   Run 2: 3.312 ms
+   Run 3: 3.718 ms
+   Run 4: 2.910 ms
+   Run 5: 3.060 ms
+🎯 Baseline Calibrated: 2.879 ms (Best of 5x50 runs)
+   -> Baseline added to population.
+🌱 Bootstrapping population to size 4...
+   -> Added init individual: 4.047 ms
+   -> Added init individual: 2.312 ms
+✅ Population initialized. Count: 3
+
+🔄 === Gen 1/5 | Best: 2.3121 ms | Source: init_mutation ===
+   ⚠️ No significant improvement (0.00%). Patience: 1/3
+      ✅ mut_tiling_expert Success: 11.5327 ms
+      ✅ mut_tiling_expert Success: 2.6259 ms
+      ✅ mut_tiling_expert Success: 3.0341 ms
+      ✅ mut_tiling_expert Success: 3.1554 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 584.24s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 11     | 510.33     | 46.39    | 87.3  %
+LLM_API_Call         | 7      | 284.51     | 40.64    | 48.7  %
+============================================================
+
+
+🔄 === Gen 2/5 | Best: 2.3121 ms | Source: init_mutation ===
+   ⚠️ No significant improvement (0.00%). Patience: 2/3
+      ✅ mut_tiling_expert Success: 2.3424 ms
+      ✅ mut_vector_expert Success: 4.3965 ms
+      ✅ mut_vector_expert Success: 8.6755 ms
+      ✅ mut_vector_expert Success: 2.0108 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 702.58s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 15     | 601.79     | 40.12    | 85.7  %
+LLM_API_Call         | 11     | 399.33     | 36.30    | 56.8  %
+============================================================
+
+
+🔄 === Gen 3/5 | Best: 2.0108 ms | Source: gen2_mut_vector_expert ===
+   🚀 Performance improved by 13.03%! Resetting patience.
+      ✅ mut_vector_expert Success: 1.1459 ms
+      ✅ crossover Success: 1.6971 ms
+      ✅ mut_tiling_expert Success: 2.9674 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 914.89s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 18     | 784.20     | 43.57    | 85.7  %
+LLM_API_Call         | 15     | 544.90     | 36.33    | 59.6  %
+============================================================
+
+
+🔄 === Gen 4/5 | Best: 1.1459 ms | Source: gen3_mut_vector_expert ===
+   🚀 Performance improved by 43.01%! Resetting patience.
+      ✅ mut_vector_expert Success: 1.0603 ms
+      ✅ crossover Success: 2.1798 ms
+      ✅ crossover Success: 1.4460 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 1259.11s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 22     | 1095.18    | 49.78    | 87.0  %
+LLM_API_Call         | 19     | 692.44     | 36.44    | 55.0  %
+============================================================
+
+
+🔄 === Gen 5/5 | Best: 1.0603 ms | Source: gen4_mut_vector_expert ===
+   🚀 Performance improved by 7.47%! Resetting patience.
+      ✅ mut_tiling_expert Success: 9.2564 ms
+      ✅ mut_tiling_expert Success: 0.8440 ms
+      ✅ mut_vector_expert Success: 1.8015 ms
+      ✅ mut_vector_expert Success: 1.5249 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 1524.43s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 26     | 1335.34    | 51.36    | 87.6  %
+LLM_API_Call         | 23     | 813.96     | 35.39    | 53.4  %
+============================================================
+
+
+============================================================
+🏁 Evolution Completed!
+Final Best Latency: 0.8440 ms
+Source: gen5_mut_tiling_expert
+Log saved to evolution_history.json
+============================================================

@@ -1,0 +1,58 @@
+🚀 Initializing Population...
+⚖️ Calibrating Baseline (5 runs)...
+   Run 1: 2.619 ms
+   Run 2: 3.478 ms
+   Run 3: 3.165 ms
+   Run 4: 1.695 ms
+   Run 5: 1.922 ms
+🎯 Baseline Calibrated: 1.695 ms (Best of 5x50 runs)
+   -> Baseline added to population.
+🌱 Bootstrapping population to size 4...
+   -> Added init individual: 1.750 ms
+   -> Added init individual: 1.167 ms
+✅ Population initialized. Count: 3
+
+🔄 === Gen 1/5 | Best: 1.1674 ms | Source: init_mutation ===
+   ⚠️ No significant improvement (0.00%). Patience: 1/3
+      ✅ mut_vector_expert Success: 1.5878 ms
+      ✅ mut_vector_expert Success: 1.3117 ms
+      ✅ mut_vector_expert Success: 2.9163 ms
+      ✅ mut_tiling_expert Success: 10.7203 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 402.44s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 11     | 327.14     | 29.74    | 81.3  %
+LLM_API_Call         | 7      | 271.67     | 38.81    | 67.5  %
+============================================================
+
+
+🔄 === Gen 2/5 | Best: 1.1674 ms | Source: init_mutation ===
+   ⚠️ No significant improvement (0.00%). Patience: 2/3
+      ✅ crossover Success: 3.8428 ms
+      ✅ mut_tiling_expert Success: 2.4463 ms
+      ✅ crossover Success: 2.3150 ms
+
+============================================================
+📊 Performance Profiling Report (Total Runtime: 629.21s)
+============================================================
+Task Name            | Calls  | Total(s)   | Avg(s)   | % of Total
+------------------------------------------------------------
+Evaluator_Run        | 15     | 529.06     | 35.27    | 84.1  %
+LLM_API_Call         | 11     | 383.25     | 34.84    | 60.9  %
+============================================================
+
+
+🔄 === Gen 3/5 | Best: 1.1674 ms | Source: init_mutation ===
+   ⚠️ No significant improvement (0.00%). Patience: 3/3
+
+🛑 Early stopping triggered! No improvement for 3 generations.
+
+============================================================
+🏁 Evolution Completed!
+Final Best Latency: 1.1674 ms
+Source: init_mutation
+Log saved to evolution_history.json
+============================================================
