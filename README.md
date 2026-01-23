@@ -185,9 +185,3 @@ python evolution_main.py
 python multi_agent/visualizer.py
 
 ```
-
-## 🔮 总结与展望 (Future Work)
-目前项目已验证了 LLM + 进化算法在算子优化上的可行性。未来的改进方向包括：
-1. **异构异步流水线**：将 API 推理（IO密集）与代码评估（计算密集）解耦，掩盖推理延迟 。
-2. **Meta-Agent 动态反馈**：引入底层硬件监控（如 Linux Perf, FlameGraph），让 Agent 根据 Cache Miss 等真实指标调整优化策略，而非盲目尝试 。
-3. **多分支并行搜索**：利用多 Key 轮询和种群分片加速搜索过程 。
