@@ -107,7 +107,9 @@ EVOLUTION_ALGOS = {
 
 ## Multi-Agents Code Optimization (MACO)
 ### 1. 多Agent协作核心原理
+
 <img width="3994" height="2398" alt="overview" src="https://github.com/user-attachments/assets/817a5ea5-b077-408c-a0d8-6aeac6690dfc" />
+
 #### （1）Role-Playing Agents（角色Agent）
 - 核心思想：通过提示词为LLM赋予特定优化角色，每个Agent专注一类优化任务；
 - 角色定义（可扩展）：
