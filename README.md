@@ -14,6 +14,8 @@
 * 实现了 Triton CPU 算子的自动化迭代与性能评估 。
 ## Overview
 ### 1. 整体架构
+![arch](./asset/triton.drawio.png)
+
 ```
 Genetic-algorithm-and-LLM-based-Triton-cpu-optimization/
 ├── evolution_algorithms/       # 核心进化算法实现
@@ -23,6 +25,7 @@ Genetic-algorithm-and-LLM-based-Triton-cpu-optimization/
 │   ├── init_generator.py      # 初始种群生成
 │   ├── main.py                # 进化算法主入口
 │   ├── run_benchmark.sh       # 批量运行脚本
+│   ├── visualize_result.py    # 可视化效果分析
 │   └── outputs/               # 迭代过程中的最佳代码与指标日志
 │
 ├── multi_agent/               # 多智能体协作优化实现 (MACO)
@@ -44,7 +47,7 @@ Genetic-algorithm-and-LLM-based-Triton-cpu-optimization/
     └── program_latency.py     # 延迟测试脚本
 ```
 
-### 2. 核心工作流程
+### 2. MACO核心工作流程
 1. **初始化**：输入基线Triton算子代码（如matmul.py、rmsnorm.py），配置优化目标（延迟降低）、算法类型及参数；
 2. **种群生成**：基于基线代码生成初始种群，通过评估器计算初始延迟；
 3. **进化/协作优化**：
@@ -68,24 +71,10 @@ Genetic-algorithm-and-LLM-based-Triton-cpu-optimization/
 ```python
 # 进化算法通用参数
 EVOLUTION_COMMON = {
-    "population_size": 50,        # 种群规模
-    "max_generations": 10,        # 最大迭代次数
+    "pop_size": 50,               # 种群规模
+    "mode": 10,                   # 进化方法，可选（Para，GA，DE）
     "time_limit": 800,            # 总时间限制（秒）
-    "elite_ratio": 0.1,           # 精英保留比例
-}
-
-# 各算法专属参数
-EVOLUTION_ALGOS = {
-    "para_evoluter": {
-        "parallel_workers": 8     # 并行线程数
-    },
-    "genetic_algorithm": {
-        "mutation_prob": 0.1,     # 变异概率
-        "tournament_size": 5      # 锦标赛选择规模
-    },
-    "differential_evolution": {
-        "diff_scale": 0.5         # 差异缩放系数
-    }
+    "budget": 10,                 # 迭代参数
 }
 ```
 
